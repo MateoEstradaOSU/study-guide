@@ -297,6 +297,34 @@
             </div>
           </div>
         </div>
+        <div>
+          <p class="fst-italic">
+            Write the definition of the concept on a piece of paper.
+          </p>
+          <div class="border border-dark rounded-2 p-2 my-2 text-center">
+            <div
+              class="d-flex justify-content-between p-3 m-3 border border-rounded"
+            >
+              <div>
+                {{ currentDefinition }}
+              </div>
+              <button class="btn btn-primary" @click="nextDefinition()">
+                Next
+              </button>
+            </div>
+            <p
+              class="rounded-3 text-center fw-bold bg-secondary text-light m-3"
+              :class="{
+                'bg-danger': handWrittenAnswer === 'Not quite',
+                'bg-success': handWrittenAnswer === 'Correct!',
+              }"
+            >
+              {{ handWrittenAnswer }}
+            </p>
+          </div>
+
+          <div id="editor-container" touch-action="none" ref="editor"></div>
+        </div>
         <p class="fst-italic fs-5 text-center">
           Time Remaining {{ timerDisplay }}
         </p>
@@ -312,17 +340,24 @@
 </template>
 <script>
 import { jsPDF } from "jspdf";
+import { Editor } from "iink-ts";
+
 // @ is an alias to /src
 export default {
   name: "StudyGuideHomeView",
   data() {
     return {
       studyGuideMode: "easy", //* This can change to 'hard' for case-sensitive comparison
+      handWrittenAnswer: "",
+      currentDefinitionIndex: 0,
+      currentConcept: "",
+      currentDefinition: "", //* ANOTHER TYPE OF STUDY METHOD 3
       fillInTheBlank: [], //* ANOTHER TYPE OF STUDY METHOD 1
       quizStarted: false,
       quizDefinitions: [], //* ANOTHER TYPE OF STUDY METHOD 2 - this will be the randomized definitions
       quizConcepts: [], //* this will be the randomized concepts
       methodsAvailable: [
+        { id: "handwriting", name: "Handwriting", selected: false },
         { id: "fillInTheBlank", name: "Fill in the Blank", selected: false },
         { id: "flashCards", name: "Flash Cards", selected: false },
         { id: "multipleChoice", name: "Multiple Choice", selected: false },
@@ -398,15 +433,15 @@ export default {
       ], //* https://pixabay.com/sound-effects/search/waves/
       selectedSignalName: "",
       currentChapter: 0,
-      selectedMethod: "Fill in the Blank",
+      selectedMethod: "Handwriting",
       audioControls: false,
       selectedSignal: require("../assets/waves-breaking.mp3"),
-      draggedconcept: null,
       numSortedCorrectly: 0,
       numToSort: 0,
       timer: null,
       timerDisplay: null,
       minutes: 10,
+      editor: null,
     };
   },
   methods: {
@@ -606,6 +641,59 @@ export default {
         }
       }
     },
+    async initializeEditor() {
+      const options = {
+        configuration: {
+          offscreen: false,
+          type: "TEXT",
+          protocol: "WEBSOCKET",
+          apiVersion: "V4",
+          server: {
+            scheme: "https",
+            host: "webdemoapi.myscript.com",
+            applicationKey: process.env.VUE_APP_APPLICATION_KEY,
+            hmacKey: process.env.VUE_APP_HMAC_KEY,
+          },
+          recognition: {
+            type: "TEXT",
+            text: {
+              mimeTypes: ["text/plain"],
+            },
+          },
+        },
+      };
+      const editor = new Editor(this.$refs.editor, options);
+      await editor.initialize();
+
+      editor.events.addEventListener("exported", (event) => {
+        const exports = event.detail;
+        if (exports && exports["text/plain"]) {
+          console.log(exports["text/plain"], this.currentConcept);
+          if (
+            exports["text/plain"].toLowerCase() ===
+            this.currentConcept.toLowerCase()
+          ) {
+            this.handWrittenAnswer = "Correct!";
+            this.nextDefinition();
+          } else {
+            this.handWrittenAnswer = `Not quite ${exports["text/plain"]}`;
+          }
+        }
+      });
+      this.editor = editor;
+    },
+    nextDefinition() {
+      this.currentDefinitionIndex += 1;
+      const currentQuestion =
+        this.chapters[this.currentChapter].conceptsAndDefinitions[
+          this.currentDefinitionIndex
+        ];
+      this.currentDefinition = currentQuestion.definition;
+      this.currentConcept = currentQuestion.concept;
+    },
+  },
+  async mounted() {
+    // await this.initializeEditor();
   },
 };
 </script>
@@ -641,5 +729,12 @@ export default {
     background-color: rgb(43, 186, 234);
     transform: rotate(360deg);
   }
+}
+#editor-container {
+  margin: auto;
+  width: 800px;
+  height: 600px;
+  border: 1px solid black;
+  border-radius: 5px;
 }
 </style>
