@@ -277,17 +277,17 @@
             class="border border-dark rounded-2 p-2 my-2 text-center"
           >
             <div class="row p-2">
-              <div class="col">
+              <div class="col-6">
                 <p class="fs-5">{{ a.definition }}</p>
               </div>
-              <div class="col input-group input-group-lg">
+              <div class="col-3 input-group input-group-lg">
                 <input
                   type="form-control"
                   v-model="fillInTheBlank[index]"
                   required
                 />
               </div>
-              <div class="col my-auto">
+              <div class="col-3 my-auto">
                 <input
                   type="submit"
                   class="btn btn-primary"
