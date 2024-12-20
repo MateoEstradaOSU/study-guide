@@ -1,2 +1,0 @@
-"use strict";(self["webpackChunkstudy_guide"]=self["webpackChunkstudy_guide"]||[]).push([[443],{2155:function(t,i,e){e.r(i),e.d(i,{default:function(){return f}});var n=e(3396);const s={class:"about container"},u=(0,n._)("h1",null,"About this tool",-1),a=(0,n._)("p",{class:"fst-italic fs-5"}," This application's entire purpose is to show that a study guide can be beneficial in rote memorization. ",-1),o=[u,a];function r(t,i){return(0,n.wg)(),(0,n.iD)("div",s,o)}var c=e(89);const l={},d=(0,c.Z)(l,[["render",r]]);var f=d}}]);
-//# sourceMappingURL=about.117ab55b.js.map
